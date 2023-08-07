@@ -4,10 +4,10 @@ import { createOrder, fetchOrdersByUser, deleteOrder, updateOrder, fetchAllOrder
 const orderRouter = express.Router();
 //  /orders is already added in base path
 orderRouter.post('/', createOrder)
-.get("/",fetchAllOrders)
-      .get('/', fetchOrdersByUser)
+      .get("/", fetchAllOrders)
+      .get('/user/:userId', fetchOrdersByUser)
       .delete('/:id', deleteOrder)
       .patch('/:id', updateOrder)
 
 
-export default orderRouter ;
+export default orderRouter;
