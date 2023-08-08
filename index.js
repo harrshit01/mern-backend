@@ -36,17 +36,18 @@ const ExtractJwt = require('passport-jwt').ExtractJwt;
 
 //jsonwebtoken authentication
 const jwt = require('jsonwebtoken');
-
+const cookieParser = require('cookie-parser');
 //password encryption
 import crypto from "crypto";
 
 //functions
-import { isAuthenticated, sanitizeUser } from "./common.js";
+import { cookieExtractor, isAuthenticated, sanitizeUser } from "./common.js";
+server.use(cookieParser());
 
 const opts = {}
-opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+opts.jwtFromRequest = cookieExtractor;
+// opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
 opts.secretOrKey = 'SECRET_KEY';
-
 
 //middlewares
 server.use(
@@ -60,13 +61,14 @@ server.use(passport.authenticate('session'));
 server.use(cors({
     exposedHeaders: ['X-Total-Count']
 }))
+server.use(express.static('build'));
 server.use(express.json());
 server.use("/products", isAuthenticated, productRouter);
 server.use("/brands", isAuthenticated, brandRouter);
 server.use("/category", isAuthenticated, categoryRouter);
-server.use("/user", isAuthenticated, userRouter);
+server.use("/user",isAuthenticated, userRouter);
 server.use("/auth", authRouter);
-server.use("/cart", isAuthenticated,cartRouter);
+server.use("/cart",isAuthenticated,cartRouter);
 server.use("/orders",isAuthenticated, orderRouter);
 
 const SECRET_KEY = 'SECRET_KEY';
@@ -75,9 +77,10 @@ const SECRET_KEY = 'SECRET_KEY';
 passport.use(
     'jwt',
     new JwtStrategy(opts, async function (jwt_payload, done) {
-      console.log({ jwt_payload });
+console.log({jwt_payload});
       try {
-        const user = await User.findOne({ id: jwt_payload.sub });
+        const user = await User.findById( jwt_payload.id );
+        console.log(user);
         if (user) {
           return done(null, sanitizeUser(user)); // this calls serializer
         } else {
@@ -92,9 +95,9 @@ passport.use(
 //passport authentication
 passport.use('local', new LocalStrategy(
     { usernameField: 'email', passwordField: 'password' },
-    async function (username, password, done) {
+    async function (email, password, done) {
         try {
-            const user = await User.findOne({ email: username }).exec();
+            const user = await User.findOne({ email: email }).exec();
             if (!user) {
                 return done(null, false, { message: 'no such user email' });
             }
@@ -105,7 +108,7 @@ passport.use('local', new LocalStrategy(
                         return done(null, false, { message: 'Incorrect username or password.' });
                     }
                     const token = jwt.sign(sanitizeUser(user), SECRET_KEY);
-                    return done(null, token);
+                    return done(null, {id: user.id, token: token,role: user.role});
                 })
         } catch (err) {
             console.log(err);
@@ -123,7 +126,6 @@ passport.serializeUser(function (user, cb) {
 // this changes session variable req.user when called from authorized request
 
 passport.deserializeUser(function (user, cb) {
-    console.log('de-serialize', user);
     process.nextTick(function () {
         return cb(null, user);
     });
