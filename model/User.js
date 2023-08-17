@@ -7,7 +7,8 @@ const UserSchema = new Schema({
     address: { type: [Schema.Types.Mixed] }, 
     // TODO:  We can make a separate Schema for this
     name: { type: String },
-    salt :Buffer
+    salt :Buffer,
+    resetPasswordToken: { type: String, default: ''}
 });
 
 const virtual = UserSchema.virtual("id");
