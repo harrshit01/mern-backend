@@ -121,13 +121,13 @@ server.use(cors({
 }))
 server.use(express.static('build'));
 server.use(express.json());
-server.use("/products",  productRouter);
-server.use("/brands",  brandRouter);
-server.use("/category",  categoryRouter);
-server.use("/user",  userRouter);
+server.use("/products", passport.authenticate('jwt'), productRouter);
+server.use("/brands", passport.authenticate('jwt'), brandRouter);
+server.use("/category", passport.authenticate('jwt'), categoryRouter);
+server.use("/user", passport.authenticate('jwt'), userRouter);
 server.use("/auth", authRouter);
-server.use("/cart",  cartRouter);
-server.use("/orders",  orderRouter);
+server.use("/cart", passport.authenticate('jwt'), cartRouter);
+server.use("/orders", passport.authenticate('jwt'), orderRouter);
 
 //jwt authentication
 
