@@ -128,7 +128,9 @@ server.use("/user", passport.authenticate('jwt'), userRouter);
 server.use("/auth", authRouter);
 server.use("/cart", passport.authenticate('jwt'), cartRouter);
 server.use("/orders", passport.authenticate('jwt'), orderRouter);
-
+server.get('*', (req, res) =>
+  res.sendFile(path.resolve('build', 'index.html'))
+);
 //jwt authentication
 
 
@@ -175,7 +177,7 @@ passport.deserializeUser(function (user, cb) {
 const stripe = require("stripe")(process.env.STRIPE_SERVER_KEY);
 
 server.post("/create-payment-intent", async (req, res) => {
-    const { totalamount } = req.body;
+    const { totalamount,orderID } = req.body;
 
     // Create a PaymentIntent with the order amount and currency
     const paymentIntent = await stripe.paymentIntents.create({
@@ -184,6 +186,9 @@ server.post("/create-payment-intent", async (req, res) => {
         automatic_payment_methods: {
             enabled: true,
         },
+        metadata: {
+            orderID
+        }
     });
 
     res.send({
