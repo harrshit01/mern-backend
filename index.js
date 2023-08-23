@@ -1,7 +1,12 @@
 
 import dotenv from "dotenv";
 dotenv.config();
+//enabling __dirname
+import * as url from 'url';
+const __filename = url.fileURLToPath(import.meta.url);
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 //for enabling require
+
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 
@@ -45,6 +50,10 @@ import crypto from "crypto";
 //functions
 import { cookieExtractor, sanitizeUser } from "./common.js";
 server.use(cookieParser());
+
+//path
+import path from "path";
+server.use(express.static(path.resolve(__dirname,'build')));
 
 //webhook
 const endpointSecret =process.env.ENDPOINT_SECRET;
